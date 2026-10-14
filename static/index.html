@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HustleVault AI | Zero-Cloud Financial Intelligence & Ledger Copilot</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+            },
+            surface: {
+              DEFAULT: '#0B0F17',
+              card: '#111827',
+              border: '#1F2937',
+              muted: '#374151'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #07090E;
+      color: #E2E8F0;
+      font-family: 'Inter', sans-serif;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .glow-cyan {
+      box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0B0F17;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #1F2937;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #374151;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
+
+  <!-- ================= TOP NAVIGATION ================= -->
+  <header class="border-b border-surface-border bg-surface-card/60 backdrop-blur-xl sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-emerald-400 p-[1px] flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div class="w-full h-full bg-[#0B0F17] rounded-[11px] flex items-center justify-center">
+            <i data-lucide="vault" class="w-5 h-5 text-cyan-400"></i>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">HustleVault</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-mono font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">AI v1.0</span>
+          </div>
+          <p class="text-[11px] text-slate-400 font-medium">Zero-Cloud Local Financial Ledger</p>
+        </div>
+      </div>
+
+      <!-- Right Controls & Status -->
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <!-- Ollama Inference Badge -->
+        <div id="ollama-status-badge" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 text-xs">
+          <span class="relative flex h-2 w-2">
+            <span id="ollama-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span id="ollama-dot" class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+          </span>
+          <span id="ollama-label" class="text-slate-300 font-mono text-[11px]">Connecting Ollama...</span>
+        </div>
+
+        <!-- Export CSV Button -->
+        <button onclick="exportCSV()" class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition shadow-sm hover:shadow">
+          <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+          <span class="hidden sm:inline">Export CSV</span>
+        </button>
+
+        <!-- Clear All Button -->
+        <button onclick="confirmClearLedger()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-medium border border-rose-500/20 transition">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Reset</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT CONTAINER ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- ================= METRIC CARDS GRID ================= -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Total Income -->
+      <div class="relative overflow-hidden rounded-2xl bg-surface-card border border-surface-border p-5 shadow-sm transition hover:border-emerald-500/30">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Gross Income</span>
+          <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="text-2xl font-bold mono text-white" id="stat-income">$0.00</div>
+          <p class="text-xs text-slate-400 mt-1 flex items-center space-x-1">
+            <span class="text-emerald-400 font-medium">Invoiced & Collected</span>
+          </p>
+        </div>
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl"></div>
+      </div>
+
+      <!-- Total Expenses -->
+      <div class="relative overflow-hidden rounded-2xl bg-surface-card border border-surface-border p-5 shadow-sm transition hover:border-rose-500/30">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Expenses</span>
+          <div class="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+            <i data-lucide="trending-down" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="text-2xl font-bold mono text-white" id="stat-expenses">$0.00</div>
+          <p class="text-xs text-slate-400 mt-1 flex items-center space-x-1">
+            <span class="text-rose-400 font-medium">Operating Outflows</span>
+          </p>
+        </div>
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl"></div>
+      </div>
+
+      <!-- Net Freelance Profit -->
+      <div class="relative overflow-hidden rounded-2xl bg-surface-card border border-surface-border p-5 shadow-sm transition hover:border-indigo-500/30">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Net Profit</span>
+          <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <i data-lucide="wallet" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="text-2xl font-bold mono text-white" id="stat-profit">$0.00</div>
+          <p class="text-xs text-slate-400 mt-1 flex items-center space-x-1">
+            <span class="text-indigo-400 font-medium">Retained Earnings</span>
+          </p>
+        </div>
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl"></div>
+      </div>
+
+      <!-- Tax Deductions -->
+      <div class="relative overflow-hidden rounded-2xl bg-surface-card border border-surface-border p-5 shadow-sm transition hover:border-amber-500/30">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tax Write-Offs</span>
+          <div class="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="text-2xl font-bold mono text-white" id="stat-deductions">$0.00</div>
+          <p class="text-xs text-slate-400 mt-1 flex items-center space-x-1">
+            <span class="text-amber-400 font-medium" id="stat-savings">~$0.00 saved (est. 25%)</span>
+          </p>
+        </div>
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl"></div>
+      </div>
+
+    </section>
+
+    <!-- ================= NATURAL LANGUAGE PARSER SECTION ================= -->
+    <section class="rounded-2xl bg-gradient-to-b from-surface-card to-[#0d131f] border border-surface-border p-6 shadow-xl relative">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i data-lucide="sparkles" class="w-5 h-5 text-cyan-400"></i>
+            <span>Local AI Financial Intake</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Paste raw bank alerts, receipts, or notes. Qwen 2.5 extracts structured accounting data locally with zero cloud leakage.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="text-[11px] font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700/60">
+            Zero-Cloud Privacy Guarantee
+          </span>
+        </div>
+      </div>
+
+      <!-- Memo Input Box -->
+      <div class="relative">
+        <textarea id="memo-input" rows="3" 
+          placeholder="Paste memo: e.g., 'Paid $45 to Vercel for Pro hosting of client app' or 'Received $3,200 via Stripe from Acme Corp for Q3 design sprint'"
+          class="w-full bg-[#080C14] border border-slate-800 focus:border-cyan-500 rounded-xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition resize-none custom-scrollbar"
+        ></textarea>
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-3">
+          <!-- Suggestion Chips -->
+          <div class="flex flex-wrap gap-1.5 items-center">
+            <span class="text-[11px] text-slate-400 font-medium mr-1">Quick Test:</span>
+            <button onclick="fillSample('Paid $45 to Vercel for Pro hosting of client app')" class="text-[11px] px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition">
+              Vercel $45
+            </button>
+            <button onclick="fillSample('Received $3,200 via Stripe from Acme Corp for Q3 design sprint')" class="text-[11px] px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition">
+              Stripe $3,200
+            </button>
+            <button onclick="fillSample('Bought Logitech MX Master 3S on Amazon for $99.99 for home workstation')" class="text-[11px] px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition">
+              Amazon $99.99
+            </button>
+            <button onclick="fillSample('Paid $180 to freelancer Alex on Upwork for logo vectorization')" class="text-[11px] px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition">
+              Upwork $180
+            </button>
+          </div>
+
+          <!-- Parse Action Button -->
+          <button id="btn-parse" onclick="parseCurrentMemo()" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-semibold text-xs tracking-wide shadow-lg shadow-cyan-500/20 transition active:scale-[0.98]">
+            <i data-lucide="cpu" class="w-4 h-4"></i>
+            <span id="btn-parse-text">Analyze with Local AI</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= CONFIRMATION & REVIEW STAGING DRAWER ================= -->
+      <div id="staging-card" class="hidden mt-6 pt-6 border-t border-slate-800/80 transition-all duration-300">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs">
+              <i data-lucide="check" class="w-3 h-3"></i>
+            </span>
+            <h3 class="text-sm font-semibold text-white">AI Extraction Preview & Review</h3>
+            <span class="text-[11px] text-slate-400 font-mono">(Review before saving to SQLite ledger)</span>
+          </div>
+          <button onclick="dismissStaging()" class="text-xs text-slate-400 hover:text-slate-200">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="bg-[#080C14] border border-cyan-500/30 rounded-xl p-4 sm:p-5 grid grid-cols-1 md:grid-cols-6 gap-4">
+          <!-- Type -->
+          <div class="md:col-span-1">
+            <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Type</label>
+            <select id="stage-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </div>
+
+          <!-- Entity / Party -->
+          <div class="md:col-span-2">
+            <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Vendor / Client</label>
+            <input id="stage-party" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500" />
+          </div>
+
+          <!-- Amount -->
+          <div class="md:col-span-1">
+            <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Amount</label>
+            <input id="stage-amount" type="number" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs mono text-white focus:outline-none focus:border-cyan-500" />
+          </div>
+
+          <!-- Currency -->
+          <div class="md:col-span-1">
+            <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Currency</label>
+            <select id="stage-currency" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="CAD">CAD ($)</option>
+            </select>
+          </div>
+
+          <!-- Category -->
+          <div class="md:col-span-1">
+            <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Category</label>
+            <input id="stage-category" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500" />
+          </div>
+
+          <!-- Tax Deductible Toggle -->
+          <div class="md:col-span-2 flex items-center space-x-3 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+            <input id="stage-tax" type="checkbox" class="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700 focus:ring-emerald-500" />
+            <label for="stage-tax" class="text-xs text-slate-200 font-medium cursor-pointer">
+              Tax-Deductible Business Write-off
+            </label>
+          </div>
+
+          <!-- Rationale -->
+          <div class="md:col-span-4">
+            <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">CPA Classification Rationale</label>
+            <input id="stage-rationale" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500" />
+          </div>
+
+          <!-- Stage Actions -->
+          <div class="md:col-span-6 flex items-center justify-end space-x-3 pt-2">
+            <button onclick="dismissStaging()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition">
+              Discard
+            </button>
+            <button onclick="commitStagedTransaction()" class="inline-flex items-center space-x-1.5 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 transition">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              <span>Save to Ledger</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= TRANSACTION LEDGER SECTION ================= -->
+    <section class="rounded-2xl bg-surface-card border border-surface-border p-6 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i data-lucide="table" class="w-5 h-5 text-indigo-400"></i>
+            <span>Local Financial Ledger</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Stored 100% locally in SQLite (<code class="text-slate-300">hustlevault.db</code>).</p>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Search box -->
+          <div class="relative">
+            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500"></i>
+            <input id="ledger-search" type="text" oninput="debounceFilter()" placeholder="Search entity or memo..." 
+              class="bg-[#080C14] border border-slate-800 focus:border-indigo-500 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none w-44 sm:w-56" />
+          </div>
+
+          <!-- Type filter tabs -->
+          <select id="ledger-filter-type" onchange="loadLedger()" class="bg-[#080C14] border border-slate-800 focus:border-indigo-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
+            <option value="">All Transactions</option>
+            <option value="income">Income Only</option>
+            <option value="expense">Expenses Only</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Ledger Table -->
+      <div class="overflow-x-auto custom-scrollbar border border-slate-800/80 rounded-xl">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-900/90 text-slate-400 uppercase tracking-wider font-semibold">
+              <th class="py-3 px-4">Date</th>
+              <th class="py-3 px-4">Type</th>
+              <th class="py-3 px-4">Vendor / Client</th>
+              <th class="py-3 px-4">Category</th>
+              <th class="py-3 px-4 text-right">Amount</th>
+              <th class="py-3 px-4 text-center">Tax Status</th>
+              <th class="py-3 px-4">Rationale</th>
+              <th class="py-3 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ledger-rows" class="divide-y divide-slate-800/60 bg-[#080C14]/40">
+            <!-- Dynamic rows populated via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State Container -->
+      <div id="ledger-empty-state" class="hidden py-12 text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-800/60 text-slate-500 mb-3">
+          <i data-lucide="inbox" class="w-6 h-6"></i>
+        </div>
+        <p class="text-sm font-medium text-slate-300">No transactions recorded yet</p>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">Use the AI Financial Intake box above to paste a receipt, invoice, or expense note.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= TOAST NOTIFICATION CONTAINER ================= -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center space-x-2 px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium"></div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    let stagedData = null;
+    let debounceTimer = null;
+
+    // Initialize application on page load
+    window.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      await checkOllamaHealth();
+      await refreshAll();
+    });
+
+    async function checkOllamaHealth() {
+      const ping = document.getElementById('ollama-ping');
+      const dot = document.getElementById('ollama-dot');
+      const label = document.getElementById('ollama-label');
+
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        
+        if (data.ollama_online) {
+          ping.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
+          dot.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-500';
+          label.textContent = `Ollama Online (${data.configured_model})`;
+          label.className = 'text-emerald-400 font-mono text-[11px]';
+        } else {
+          ping.className = 'hidden';
+          dot.className = 'relative inline-flex rounded-full h-2 w-2 bg-amber-500';
+          label.textContent = 'Ollama Standby (Fallback Mode Active)';
+          label.className = 'text-amber-400 font-mono text-[11px]';
+        }
+      } catch (err) {
+        ping.className = 'hidden';
+        dot.className = 'relative inline-flex rounded-full h-2 w-2 bg-rose-500';
+        label.textContent = 'Server Offline';
+        label.className = 'text-rose-400 font-mono text-[11px]';
+      }
+    }
+
+    async function refreshAll() {
+      await Promise.all([loadDashboard(), loadLedger()]);
+      lucide.createIcons();
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/dashboard');
+        const d = await res.json();
+
+        document.getElementById('stat-income').textContent = formatCurrency(d.total_income);
+        document.getElementById('stat-expenses').textContent = formatCurrency(d.total_expenses);
+        
+        const profitEl = document.getElementById('stat-profit');
+        profitEl.textContent = formatCurrency(d.net_profit);
+        profitEl.className = d.net_profit >= 0 
+          ? 'text-2xl font-bold mono text-emerald-400' 
+          : 'text-2xl font-bold mono text-rose-400';
+
+        document.getElementById('stat-deductions').textContent = formatCurrency(d.tax_deductible_total);
+        document.getElementById('stat-savings').textContent = `~${formatCurrency(d.estimated_tax_savings)} saved (est. 25%)`;
+      } catch (err) {
+        console.error('Failed to load dashboard metrics', err);
+      }
+    }
+
+    async function loadLedger() {
+      const typeFilter = document.getElementById('ledger-filter-type').value;
+      const search = document.getElementById('ledger-search').value.trim();
+
+      let url = '/api/entries?';
+      if (typeFilter) url += `type=${encodeURIComponent(typeFilter)}&`;
+      if (search) url += `search=${encodeURIComponent(search)}&`;
+
+      try {
+        const res = await fetch(url);
+        const entries = await res.json();
+        
+        const tbody = document.getElementById('ledger-rows');
+        const emptyState = document.getElementById('ledger-empty-state');
+        tbody.innerHTML = '';
+
+        if (!entries || entries.length === 0) {
+          emptyState.classList.remove('hidden');
+          return;
+        } else {
+          emptyState.classList.add('hidden');
+        }
+
+        entries.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-800/40 transition border-b border-slate-800/40 text-slate-300';
+
+          const isIncome = item.type === 'income';
+          const typeBadge = isIncome 
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">INCOME</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">EXPENSE</span>`;
+
+          const taxBadge = item.tax_deductible 
+            ? `<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"><i data-lucide="shield-check" class="w-3 h-3"></i><span>Deductible</span></span>`
+            : `<span class="text-slate-500 text-[11px]">—</span>`;
+
+          const formattedAmount = isIncome 
+            ? `+${formatCurrency(item.amount, item.currency)}` 
+            : `-${formatCurrency(item.amount, item.currency)}`;
+          const amountClass = isIncome ? 'text-emerald-400 font-bold mono' : 'text-slate-200 font-bold mono';
+
+          tr.innerHTML = `
+            <td class="py-3 px-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">${item.date}</td>
+            <td class="py-3 px-4 whitespace-nowrap">${typeBadge}</td>
+            <td class="py-3 px-4 font-medium text-white">${escapeHtml(item.party)}</td>
+            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-mono">${escapeHtml(item.category)}</span></td>
+            <td class="py-3 px-4 text-right whitespace-nowrap ${amountClass}">${formattedAmount}</td>
+            <td class="py-3 px-4 text-center whitespace-nowrap">${taxBadge}</td>
+            <td class="py-3 px-4 text-slate-400 text-[11px] max-w-xs truncate" title="${escapeHtml(item.rationale || '')}">
+              ${escapeHtml(item.rationale || item.raw_memo || '—')}
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button onclick="deleteEntry(${item.id})" class="p-1.5 rounded-md hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition" title="Delete record">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Failed to load ledger', err);
+      }
+    }
+
+    function debounceFilter() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadLedger();
+      }, 250);
+    }
+
+    function fillSample(text) {
+      document.getElementById('memo-input').value = text;
+      parseCurrentMemo();
+    }
+
+    async function parseCurrentMemo() {
+      const input = document.getElementById('memo-input');
+      const memo = input.value.trim();
+      if (!memo) {
+        showToast('Please type or paste a transaction memo.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-parse');
+      const btnText = document.getElementById('btn-parse-text');
+      const originalText = btnText.textContent;
+
+      btn.disabled = true;
+      btnText.textContent = 'Extracting via Qwen2.5...';
+      btn.classList.add('opacity-75');
+
+      try {
+        const res = await fetch('/api/parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memo })
+        });
+
+        if (!res.ok) {
+          throw new Error('Parsing failed');
+        }
+
+        const data = await res.json();
+        stagedData = { ...data, raw_memo: memo };
+
+        // Populate staging drawer
+        document.getElementById('stage-type').value = data.type;
+        document.getElementById('stage-party').value = data.party;
+        document.getElementById('stage-amount').value = data.amount;
+        document.getElementById('stage-currency').value = data.currency || 'USD';
+        document.getElementById('stage-category').value = data.category;
+        document.getElementById('stage-tax').checked = !!data.tax_deductible;
+        document.getElementById('stage-rationale').value = data.rationale;
+
+        document.getElementById('staging-card').classList.remove('hidden');
+        lucide.createIcons();
+        showToast('Memo parsed by local LLM! Review and save.', 'success');
+      } catch (err) {
+        showToast('Failed to parse memo. Check server logs.', 'error');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = originalText;
+        btn.classList.remove('opacity-75');
+      }
+    }
+
+    function dismissStaging() {
+      document.getElementById('staging-card').classList.add('hidden');
+      stagedData = null;
+    }
+
+    async function commitStagedTransaction() {
+      if (!stagedData) return;
+
+      const payload = {
+        type: document.getElementById('stage-type').value,
+        party: document.getElementById('stage-party').value.trim() || 'Unknown',
+        amount: parseFloat(document.getElementById('stage-amount').value) || 0.0,
+        currency: document.getElementById('stage-currency').value,
+        category: document.getElementById('stage-category').value.trim() || 'General',
+        tax_deductible: document.getElementById('stage-tax').checked,
+        rationale: document.getElementById('stage-rationale').value.trim(),
+        raw_memo: stagedData.raw_memo
+      };
+
+      try {
+        const res = await fetch('/api/entries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          showToast('Transaction saved to local ledger!', 'success');
+          dismissStaging();
+          document.getElementById('memo-input').value = '';
+          await refreshAll();
+        } else {
+          showToast('Failed to save transaction', 'error');
+        }
+      } catch (err) {
+        showToast('Network error while saving', 'error');
+        console.error(err);
+      }
+    }
+
+    async function deleteEntry(id) {
+      if (!confirm('Delete this transaction?')) return;
+      try {
+        const res = await fetch(`/api/entries/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Transaction deleted', 'info');
+          await refreshAll();
+        }
+      } catch (err) {
+        showToast('Failed to delete', 'error');
+      }
+    }
+
+    async function confirmClearLedger() {
+      if (!confirm('WARNING: Are you sure you want to clear the ENTIRE ledger? This cannot be undone.')) return;
+      try {
+        const res = await fetch('/api/entries', { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Ledger cleared', 'info');
+          await refreshAll();
+        }
+      } catch (err) {
+        showToast('Error resetting ledger', 'error');
+      }
+    }
+
+    function exportCSV() {
+      window.location.href = '/api/export';
+      showToast('Downloading ledger CSV...', 'success');
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+
+      if (type === 'success') {
+        toast.className = 'fixed bottom-5 right-5 z-50 transform translate-y-0 opacity-100 bg-emerald-950 border border-emerald-500/50 text-emerald-200 px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold';
+      } else if (type === 'error') {
+        toast.className = 'fixed bottom-5 right-5 z-50 transform translate-y-0 opacity-100 bg-rose-950 border border-rose-500/50 text-rose-200 px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold';
+      } else {
+        toast.className = 'fixed bottom-5 right-5 z-50 transform translate-y-0 opacity-100 bg-slate-900 border border-slate-700 text-slate-200 px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold';
+      }
+
+      setTimeout(() => {
+        toast.className = 'fixed bottom-5 right-5 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center space-x-2 px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium';
+      }, 3500);
+    }
+
+    function formatCurrency(amount, currency = 'USD') {
+      const symbol = currency === 'EUR' ? '€' : (currency === 'GBP' ? '£' : '$');
+      return `${symbol}${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
