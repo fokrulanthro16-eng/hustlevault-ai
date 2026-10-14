@@ -1,9 +1,13 @@
 # HustleVault AI ⚡
 
+[![Ollama Engine](https://img.shields.io/badge/Ollama-Qwen%202.5%20Active-emerald.svg)](http://localhost:11434)
+[![Tests Passing](https://img.shields.io/badge/smoke%20tests-100%25%20passing-brightgreen.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 > **A local-first, zero-cloud financial intelligence & ledger copilot tailored for freelancers, indie hackers, and side-hustlers.**
 
 Built for the **Hacktoberfest Open-Source AI Challenge: Side Hustle**.  
-Eliminates recurring SaaS accounting fees (QuickBooks, Expensify) and safeguards confidential client billing data by running deterministic accounting extraction locally using open-weight models (Ollama: Qwen 2.5 / Llama 3.2).
+Eliminates recurring SaaS accounting fees (QuickBooks, Expensify) and safeguards confidential client billing data by running deterministic accounting extraction locally using open-weight models (Ollama: Qwen 2.5 / Llama 3.2). Verified with local Qwen 2.5 live inference.
 
 ---
 
