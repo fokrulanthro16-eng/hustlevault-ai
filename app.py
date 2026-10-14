@@ -60,7 +60,11 @@ def init_db():
 # PYDANTIC DATA MODELS
 # ==========================================
 class ParseRequest(BaseModel):
-    memo: str = Field(..., min_length=3, description="Messy transaction memo string")
+    memo: Optional[str] = Field(None, description="Messy transaction memo string")
+    text: Optional[str] = Field(None, description="Alternative field for transaction text")
+
+    def get_memo(self) -> str:
+        return (self.memo or self.text or "").strip()
 
 class ParsedTransaction(BaseModel):
     type: str = Field(..., description="'income' or 'expense'")
@@ -74,12 +78,14 @@ class ParsedTransaction(BaseModel):
 class TransactionCreate(BaseModel):
     date: Optional[str] = None
     type: str
-    party: str
+    party: Optional[str] = None
+    client_or_vendor: Optional[str] = None
     amount: float
     currency: str = "USD"
     category: str
     tax_deductible: bool = False
     rationale: Optional[str] = None
+    summary: Optional[str] = None
     raw_memo: Optional[str] = None
 
 class TransactionOut(BaseModel):
@@ -254,9 +260,10 @@ async def parse_memo(req: ParseRequest):
     Parses natural language transaction memos using local Ollama model (Qwen 2.5 / Llama 3.2).
     Enforces deterministic JSON output.
     """
+    memo_text = req.get_memo()
     payload = {
         "model": OLLAMA_MODEL,
-        "prompt": f"Transaction memo to analyze: \"{req.memo}\"\nExtract structured JSON:",
+        "prompt": f"Transaction memo to analyze: \"{memo_text}\"\nExtract structured JSON:",
         "system": EXTRACTION_SYSTEM_PROMPT,
         "stream": False,
         "format": "json",
@@ -268,19 +275,19 @@ async def parse_memo(req: ParseRequest):
 
     raw_response_text = ""
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=120.0) as client:
             resp = await client.post(f"{OLLAMA_BASE_URL}/api/generate", json=payload)
             if resp.status_code == 200:
                 resp_json = resp.json()
                 raw_response_text = resp_json.get("response", "").strip()
             else:
                 # Fallback to local heuristic if model returns non-200
-                fallback_data = heuristic_fallback_parse(req.memo)
+                fallback_data = heuristic_fallback_parse(memo_text)
                 return ParsedTransaction(**fallback_data)
 
     except (httpx.ConnectError, httpx.TimeoutException, Exception) as exc:
         # If Ollama is offline or timing out, switch to fallback seamlessly with notice
-        fallback_data = heuristic_fallback_parse(req.memo)
+        fallback_data = heuristic_fallback_parse(memo_text)
         fallback_data["rationale"] += f" (Ollama offline: {str(exc)[:50]})"
         return ParsedTransaction(**fallback_data)
 
@@ -305,7 +312,7 @@ async def parse_memo(req: ParseRequest):
         )
     except Exception:
         # Fallback if model returned invalid JSON structure
-        fallback_data = heuristic_fallback_parse(req.memo)
+        fallback_data = heuristic_fallback_parse(memo_text)
         return ParsedTransaction(**fallback_data)
 
 @app.get("/api/entries", response_model=List[TransactionOut])
@@ -354,6 +361,8 @@ def get_entries(
 def create_entry(entry: TransactionCreate):
     """Commit a validated transaction into the local SQLite ledger."""
     entry_date = entry.date or datetime.now().strftime("%Y-%m-%d")
+    resolved_party = (entry.party or entry.client_or_vendor or "Unknown").strip()
+    resolved_rationale = entry.rationale or entry.summary or ""
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -362,12 +371,12 @@ def create_entry(entry: TransactionCreate):
         """, (
             entry_date,
             entry.type.lower(),
-            entry.party.strip(),
+            resolved_party,
             abs(float(entry.amount)),
             entry.currency.upper(),
             entry.category.strip(),
             1 if entry.tax_deductible else 0,
-            entry.rationale,
+            resolved_rationale,
             entry.raw_memo
         ))
         conn.commit()
