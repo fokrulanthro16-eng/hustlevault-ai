@@ -95,13 +95,21 @@ class TransactionOut(BaseModel):
     raw_memo: Optional[str]
     created_at: str
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
 # ==========================================
 # FASTAPI APPLICATION
 # ==========================================
 app = FastAPI(
     title="HustleVault AI",
     description="Local-first, zero-cloud financial intelligence & ledger copilot",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -111,10 +119,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-def on_startup():
-    init_db()
 
 # ==========================================
 # SYSTEM PROMPTS & INFERENCE ENGINE
@@ -493,9 +497,9 @@ def read_root():
 if __name__ == "__main__":
     import uvicorn
     print("\n" + "="*60)
-    print("  🚀 HustleVault AI - Local Financial Copilot")
-    print(f"  • Local Dashboard:  http://localhost:8000")
-    print(f"  • Ollama Endpoint:  {OLLAMA_BASE_URL} (Model: {OLLAMA_MODEL})")
-    print(f"  • Local Database:   {DB_FILE}")
+    print("  >> HustleVault AI - Local Financial Copilot")
+    print(f"  * Local Dashboard:  http://localhost:8000")
+    print(f"  * Ollama Endpoint:  {OLLAMA_BASE_URL} (Model: {OLLAMA_MODEL})")
+    print(f"  * Local Database:   {DB_FILE}")
     print("="*60 + "\n")
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
